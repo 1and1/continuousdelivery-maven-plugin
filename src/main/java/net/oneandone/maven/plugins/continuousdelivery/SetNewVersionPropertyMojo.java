@@ -16,6 +16,7 @@ package net.oneandone.maven.plugins.continuousdelivery;
  * limitations under the License.
  */
 import java.util.Locale;
+import java.util.Properties;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
@@ -45,7 +46,9 @@ public class SetNewVersionPropertyMojo extends AbstractMojo {
         }
         final String newVersion = String.format(Locale.ENGLISH, "%s-%s", version.subSequence(0, version.length() - SNAPSHOT.length()), buildNumber);
         getLog().info(String.format(Locale.ENGLISH, "Setting new version to: %s", newVersion));
-        project.getProperties().setProperty("newVersion", newVersion);
+        final Properties properties = project.getProperties();
+        properties.setProperty("newVersion", newVersion);
+        properties.setProperty("generateBackupPoms", "false");
     }
 
 
