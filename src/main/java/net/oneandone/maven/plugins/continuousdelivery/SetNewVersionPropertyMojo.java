@@ -24,7 +24,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.project.MavenProject;
 
 /**
- * Goal which calculates a property {@literal newVersion} from a SNAPSHOT enhanced by Jenkins' build number.
+ * Goal which calculates properties {@literal newVersion} and {@literal releaseVersion} from a SNAPSHOT enhanced by Jenkins' build number.
  */
 @Mojo(name = "set-new-version", requiresProject = true, requiresDirectInvocation = true)
 public class SetNewVersionPropertyMojo extends AbstractMojo {
