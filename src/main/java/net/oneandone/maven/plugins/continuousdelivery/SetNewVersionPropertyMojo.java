@@ -44,12 +44,12 @@ public class SetNewVersionPropertyMojo extends AbstractMojo {
         if (buildNumber == null) {
             throw new MojoExecutionException(String.format(Locale.ENGLISH, "Environment variable '%s' not set!", BUILD_NUMBER));
         }
-        final String newVersion = String.format(Locale.ENGLISH, "%s-%s", version.subSequence(0, version.length() - SNAPSHOT.length()), buildNumber);
-        getLog().info(String.format(Locale.ENGLISH, "Setting new version to: %s", newVersion));
+        final String newVersion = String.format(Locale.ENGLISH, "%s.%s", version.subSequence(0, version.length() - SNAPSHOT.length()), buildNumber);
+        getLog().info(String.format(Locale.ENGLISH, "Setting property newVersion and releaseVersion to: %s", newVersion));
         final Properties properties = project.getProperties();
         properties.setProperty("newVersion", newVersion);
+        properties.setProperty("releaseVersion", newVersion);
+        getLog().info("Setting property generateBackupPoms to false.");
         properties.setProperty("generateBackupPoms", "false");
     }
-
-
 }
