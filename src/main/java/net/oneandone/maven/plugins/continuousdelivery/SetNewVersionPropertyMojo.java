@@ -1,7 +1,5 @@
-package net.oneandone.maven.plugins.continuousdelivery;
-
 /*
- * Copyright 2001-2005 The Apache Software Foundation.
+ * 1&1 Internet AG, https://github.com/1and1/.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +13,8 @@ package net.oneandone.maven.plugins.continuousdelivery;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package net.oneandone.maven.plugins.continuousdelivery;
+
 import java.util.Locale;
 import java.util.Properties;
 import org.apache.maven.plugin.AbstractMojo;
@@ -24,7 +24,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.project.MavenProject;
 
 /**
- * Goal which calculates properties {@literal newVersion} and {@literal releaseVersion} from a SNAPSHOT enhanced by Jenkins' build number.
+ * Goal which calculates properties {@literal newVersion} and {@literal releaseVersion} from a SNAPSHOT enhanced by Jenkins' build
+ * number.
  */
 @Mojo(name = "set-new-version", requiresProject = true, requiresDirectInvocation = true)
 public class SetNewVersionPropertyMojo extends AbstractMojo {
@@ -34,13 +35,23 @@ public class SetNewVersionPropertyMojo extends AbstractMojo {
     @Component
     private MavenProject project;
 
+    public SetNewVersionPropertyMojo() {
+    }
+
+    /**
+     * For tests.
+     */
+    SetNewVersionPropertyMojo(MavenProject project) {
+        this.project = project;
+    }
+
     @Override
     public void execute() throws MojoExecutionException {
         final String version = project.getVersion();
         if (!version.endsWith(SNAPSHOT)) {
             throw new MojoExecutionException("Not a SNAPSHOT version!!");
         }
-        final String buildNumber = System.getenv(BUILD_NUMBER);
+        final String buildNumber = getBuildNumber();
         if (buildNumber == null) {
             throw new MojoExecutionException(String.format(Locale.ENGLISH, "Environment variable '%s' not set!", BUILD_NUMBER));
         }
@@ -51,5 +62,9 @@ public class SetNewVersionPropertyMojo extends AbstractMojo {
         properties.setProperty("releaseVersion", newVersion);
         getLog().info("Setting property generateBackupPoms to false.");
         properties.setProperty("generateBackupPoms", "false");
+    }
+
+    String getBuildNumber() {
+        return System.getenv(BUILD_NUMBER);
     }
 }
