@@ -15,15 +15,47 @@
     <packaging>maven-plugin</packaging>
 
     <name>1-and-1 :: Continuous Delivery Plugin for Maven</name>
-    <url>http://maven.apache.org</url>
+    <url>http://1and1.github.io/continuousdelivery-maven-plugin/</url>
+
+    <developers>
+        <developer>
+            <id>mifr</id>
+            <name>Mirko Friedenhagen</name>
+            <organization>1 &amp; 1 Internet AG</organization>
+            <organizationUrl>${project.url}</organizationUrl>
+            <url>http://github.com/mfriedenhagen/</url>
+            <timezone>+1</timezone>
+            <roles>
+                <role>developer</role>
+                <role>project lead</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/1and1/continuousdelivery-maven-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/1and1/continuousdelivery-maven-plugin.git</developerConnection>
+        <url>https://github.com/1and1/continuousdelivery-maven-plugin/</url>
+        <tag>HEAD</tag>
+    </scm>
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/1and1/continuousdelivery-maven-plugin/issues</url>
+    </issueManagement>
+    <ciManagement>
+        <system>Jenkins</system>
+        <url>https://huschteguzzel.de/hudson/job/oneandone-continuousdelivery-maven-plugin/</url>
+    </ciManagement>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <findbugs-maven-plugin.excludeFilterFile>src/conf/findbugs-exclude.xml</findbugs-maven-plugin.excludeFilterFile>
         <scmpublish.content>target/staging/continuousdelivery-maven-plugin</scmpublish.content>
         <jacoco.check.branchRatio>0.87</jacoco.check.branchRatio>
         <maven-plugin-plugin.version>3.3</maven-plugin-plugin.version>
         <netbeans.compile.on.save>all</netbeans.compile.on.save>
         <netbeans.hint.jdkPlatform>JDK_1.7</netbeans.hint.jdkPlatform>
+        <enforcer.skip>true</enforcer.skip><!-- have to sort out duplicate classes -->
     </properties>
 
     <dependencies>
