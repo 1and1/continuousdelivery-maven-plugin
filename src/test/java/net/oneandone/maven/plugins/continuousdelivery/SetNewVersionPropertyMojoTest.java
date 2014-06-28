@@ -61,7 +61,13 @@ public class SetNewVersionPropertyMojoTest {
     public void testExecuteNoBuildNumber() throws MojoExecutionException {
         MavenProject mavenProject = new MavenProject();
         mavenProject.setVersion("1.0-SNAPSHOT");
-        SetNewVersionPropertyMojo sut = new SetNewVersionPropertyMojo(mavenProject);
+        // need to set this explicitely, otherwise this will always fail in a Jenkins build.
+        SetNewVersionPropertyMojo sut = new SetNewVersionPropertyMojo(mavenProject) {
+            @Override
+            String getBuildNumber() {
+                return null;
+            }
+        };
         sut.execute();
     }
 
