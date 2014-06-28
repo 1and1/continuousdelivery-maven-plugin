@@ -15,6 +15,7 @@
     <packaging>maven-plugin</packaging>
 
     <name>1-and-1 :: Continuous Delivery Plugin for Maven</name>
+    <description>Some useful Mojos for CD.</description>
     <url>http://1and1.github.io/continuousdelivery-maven-plugin/</url>
 
     <developers>
