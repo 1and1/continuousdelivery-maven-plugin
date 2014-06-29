@@ -19,8 +19,8 @@ import java.util.Locale;
 import java.util.Properties;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 /**
@@ -32,7 +32,7 @@ public class SetNewVersionPropertyMojo extends AbstractMojo {
 
     private static final String BUILD_NUMBER = "BUILD_NUMBER";
     private static final String SNAPSHOT = "-SNAPSHOT";
-    @Component
+    @Parameter(defaultValue = "${project}", readonly = true)
     private MavenProject project;
 
     public SetNewVersionPropertyMojo() {
