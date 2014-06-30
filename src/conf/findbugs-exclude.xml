@@ -1,6 +1,6 @@
 <FindBugsFilter>
     <Match><!-- generated -->
-        <Class name="net.oneandone.maven.plugins.continuousdelivery.HelpMojo" />
+        <Class name="~net.oneandone.maven.plugins..*.HelpMojo" />
     </Match>
     <Match><!-- generated -->
         <Class name="HelpMojo" />

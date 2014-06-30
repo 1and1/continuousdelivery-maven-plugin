@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.maven.plugins.continuousdelivery;
+package net.oneandone.maven.plugins.releasehelper;
 
 import java.util.Locale;
 import java.util.Properties;

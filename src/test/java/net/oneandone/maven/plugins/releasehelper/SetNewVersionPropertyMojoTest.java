@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.maven.plugins.continuousdelivery;
+package net.oneandone.maven.plugins.releasehelper;
 
+import net.oneandone.maven.plugins.releasehelper.SetNewVersionPropertyMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import static org.junit.Assert.assertEquals;
