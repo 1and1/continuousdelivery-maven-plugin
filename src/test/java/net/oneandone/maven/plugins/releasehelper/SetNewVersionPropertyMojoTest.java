@@ -15,7 +15,6 @@
  */
 package net.oneandone.maven.plugins.releasehelper;
 
-import net.oneandone.maven.plugins.releasehelper.SetNewVersionPropertyMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import static org.junit.Assert.assertEquals;
