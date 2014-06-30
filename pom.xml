@@ -50,12 +50,14 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jacoco-maven-plugin.version>0.7.1.201405082137</jacoco-maven-plugin.version>
+        <jdkVersion>[1.8.0]</jdkVersion>
         <findbugs-maven-plugin.excludeFilterFile>src/conf/findbugs-exclude.xml</findbugs-maven-plugin.excludeFilterFile>
         <scmpublish.content>target/staging/releasehelper-maven-plugin</scmpublish.content>
         <jacoco.check.branchRatio>0.87</jacoco.check.branchRatio>
         <maven-plugin-plugin.version>3.3</maven-plugin-plugin.version>
         <netbeans.compile.on.save>all</netbeans.compile.on.save>
-        <netbeans.hint.jdkPlatform>JDK_1.7</netbeans.hint.jdkPlatform>
+        <netbeans.hint.jdkPlatform>JDK_1.8</netbeans.hint.jdkPlatform>
     </properties>
 
     <dependencies>
@@ -93,6 +95,19 @@
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.1</version>
+                    <configuration>
+                        <source>1.7</source>
+                        <target>1.7</target>
+                        <testSource>1.8</testSource>
+                        <testTarget>1.8</testTarget>
+                        <forceJavacCompilerUse>true</forceJavacCompilerUse>
+                        <fork>true</fork>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-pmd-plugin</artifactId>
                     <configuration>
                         <excludes>
@@ -112,6 +127,26 @@
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-toolchains-plugin</artifactId>
+                <version>1.0</version>
+                <executions>
+                    <execution>
+                        <id>default-toolchain</id>
+                        <goals>
+                            <goal>toolchain</goal>
+                        </goals>
+                        <configuration>
+                            <toolchains>
+                                <jdk>
+                                    <version>${jdkVersion}</version>
+                                </jdk>
+                            </toolchains>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
