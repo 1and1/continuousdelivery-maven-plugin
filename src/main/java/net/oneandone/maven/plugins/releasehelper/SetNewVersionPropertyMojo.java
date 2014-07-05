@@ -15,10 +15,14 @@
  */
 package net.oneandone.maven.plugins.releasehelper;
 
+import java.io.File;
 import java.util.Locale;
 import java.util.Properties;
+
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
@@ -34,6 +38,10 @@ public class SetNewVersionPropertyMojo extends AbstractMojo {
     private static final String SNAPSHOT = "-SNAPSHOT";
     @Parameter(defaultValue = "${project}", readonly = true)
     private MavenProject project;
+    @Component
+    private MavenSession session;
+    @Parameter(defaultValue = "${basedir}", readonly = true)
+    private File baseDir;
 
     public SetNewVersionPropertyMojo() {
     }
@@ -41,27 +49,33 @@ public class SetNewVersionPropertyMojo extends AbstractMojo {
     /**
      * For tests.
      */
-    SetNewVersionPropertyMojo(MavenProject project) {
+    SetNewVersionPropertyMojo(MavenProject project, MavenSession session, File baseDir) {
         this.project = project;
+        this.session = session;
+        this.baseDir = baseDir;
     }
 
     @Override
     public void execute() throws MojoExecutionException {
-        final String version = project.getVersion();
-        if (!version.endsWith(SNAPSHOT)) {
-            throw new MojoExecutionException("Not a SNAPSHOT version!!");
+        if (session.getExecutionRootDirectory().equalsIgnoreCase(baseDir.toString())) {
+            final String version = project.getVersion();
+            if (!version.endsWith(SNAPSHOT)) {
+                throw new MojoExecutionException("Not a SNAPSHOT version!!");
+            }
+            final String buildNumber = getBuildNumber();
+            if (buildNumber == null) {
+                throw new MojoExecutionException(String.format(Locale.ENGLISH, "Environment variable '%s' not set!", BUILD_NUMBER));
+            }
+            final String newVersion = String.format(Locale.ENGLISH, "%s.%s", version.subSequence(0, version.length() - SNAPSHOT.length()), buildNumber);
+            getLog().info(String.format(Locale.ENGLISH, "Setting property newVersion and releaseVersion to: %s", newVersion));
+            final Properties properties = project.getProperties();
+            properties.setProperty("newVersion", newVersion);
+            properties.setProperty("releaseVersion", newVersion);
+            getLog().info("Setting property generateBackupPoms to false.");
+            properties.setProperty("generateBackupPoms", "false");
+        } else {
+            getLog().info(String.format(Locale.ENGLISH, "Skipping because %s is not the root project", project));
         }
-        final String buildNumber = getBuildNumber();
-        if (buildNumber == null) {
-            throw new MojoExecutionException(String.format(Locale.ENGLISH, "Environment variable '%s' not set!", BUILD_NUMBER));
-        }
-        final String newVersion = String.format(Locale.ENGLISH, "%s.%s", version.subSequence(0, version.length() - SNAPSHOT.length()), buildNumber);
-        getLog().info(String.format(Locale.ENGLISH, "Setting property newVersion and releaseVersion to: %s", newVersion));
-        final Properties properties = project.getProperties();
-        properties.setProperty("newVersion", newVersion);
-        properties.setProperty("releaseVersion", newVersion);
-        getLog().info("Setting property generateBackupPoms to false.");
-        properties.setProperty("generateBackupPoms", "false");
     }
 
     String getBuildNumber() {

@@ -15,25 +15,43 @@
  */
 package net.oneandone.maven.plugins.releasehelper;
 
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+
+import java.io.File;
 
 /**
- *
  * @author Mirko Friedenhagen
  */
 public class SetNewVersionPropertyMojoTest {
+
+    MavenSession mockedSession = mock(MavenSession.class);
+    File mockedBasedir = mock(File.class);
+    private final MavenProject mavenProject = new MavenProject();
+
+    @Before
+    public void setupMocks() {
+        when(mockedSession.getExecutionRootDirectory()).thenReturn(".");
+    }
 
     /**
      * Test of execute method, of class SetNewVersionPropertyMojo.
      */
     @Test
     public void testExecute() throws MojoExecutionException {
-        MavenProject mavenProject = new MavenProject();
+        when(mockedBasedir.toString()).thenReturn(".");
         mavenProject.setVersion("1.0-SNAPSHOT");
-        SetNewVersionPropertyMojo sut = new SetNewVersionPropertyMojo(mavenProject) {
+        SetNewVersionPropertyMojo sut = new SetNewVersionPropertyMojo(mavenProject, mockedSession, mockedBasedir) {
             @Override
             String getBuildNumber() {
                 return "123";
@@ -46,11 +64,27 @@ public class SetNewVersionPropertyMojoTest {
     /**
      * Test of execute method, of class SetNewVersionPropertyMojo.
      */
+    @Test
+    public void testExecuteNotInRootDir() throws MojoExecutionException {
+        when(mockedBasedir.toString()).thenReturn("target");
+        mavenProject.setVersion("1.0-SNAPSHOT");
+        SetNewVersionPropertyMojo sut = new SetNewVersionPropertyMojo(mavenProject, mockedSession, mockedBasedir) {
+            @Override
+            String getBuildNumber() {
+                return "123";
+            }
+        };
+        sut.execute();
+        assertNull("Not in root dir, should be null", mavenProject.getProperties().getProperty("newVersion"));
+    }
+    /**
+     * Test of execute method, of class SetNewVersionPropertyMojo.
+     */
     @Test(expected = MojoExecutionException.class)
     public void testExecuteNotASnapshot() throws MojoExecutionException {
-        MavenProject mavenProject = new MavenProject();
+        when(mockedBasedir.toString()).thenReturn(".");
         mavenProject.setVersion("1.0");
-        SetNewVersionPropertyMojo sut = new SetNewVersionPropertyMojo(mavenProject);
+        SetNewVersionPropertyMojo sut = new SetNewVersionPropertyMojo(mavenProject, mockedSession, mockedBasedir);
         sut.execute();
     }
 
@@ -59,10 +93,10 @@ public class SetNewVersionPropertyMojoTest {
      */
     @Test(expected = MojoExecutionException.class)
     public void testExecuteNoBuildNumber() throws MojoExecutionException {
-        MavenProject mavenProject = new MavenProject();
+        when(mockedBasedir.toString()).thenReturn(".");
         mavenProject.setVersion("1.0-SNAPSHOT");
         // need to set this explicitely, otherwise this will always fail in a Jenkins build.
-        SetNewVersionPropertyMojo sut = new SetNewVersionPropertyMojo(mavenProject) {
+        SetNewVersionPropertyMojo sut = new SetNewVersionPropertyMojo(mavenProject, mockedSession, mockedBasedir) {
             @Override
             String getBuildNumber() {
                 return null;
@@ -72,9 +106,9 @@ public class SetNewVersionPropertyMojoTest {
     }
 
     @Test
-    public void testGetBuildNumberAndParameterlessConstructor() {
+    public void testGetBuildNumberAndParameterLessConstructor() {
         new SetNewVersionPropertyMojo();
-        SetNewVersionPropertyMojo sut = new SetNewVersionPropertyMojo(new MavenProject());
+        SetNewVersionPropertyMojo sut = new SetNewVersionPropertyMojo(mavenProject, mockedSession, mockedBasedir);
         sut.getBuildNumber();
     }
 }
