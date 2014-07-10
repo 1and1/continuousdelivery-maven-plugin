@@ -30,6 +30,7 @@ import org.apache.maven.scm.ScmFileSet;
 import org.apache.maven.scm.command.info.InfoScmResult;
 import org.apache.maven.scm.manager.NoSuchScmProviderException;
 import org.apache.maven.scm.manager.ScmManager;
+import org.apache.maven.scm.provider.ScmProvider;
 import org.apache.maven.scm.repository.ScmRepository;
 import org.apache.maven.scm.repository.ScmRepositoryException;
 import org.codehaus.plexus.util.StringUtils;
@@ -65,7 +66,8 @@ public class CreateManifestMojo extends AbstractMojo {
         final InfoScmResult info;
         try {
             repository = scmManager.makeScmRepository(StringUtils.isBlank(urlScm) ? readUrlScm : urlScm);
-            info = scmManager.getProviderByRepository(repository).info(
+            final ScmProvider provider = scmManager.getProviderByRepository(repository);
+            info = provider.info(
                     repository.getProviderRepository(), new ScmFileSet(baseDir), new CommandParameters());
         } catch (ScmException e) {
             throw new RuntimeException(e);
