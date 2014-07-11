@@ -19,14 +19,12 @@ import org.apache.maven.archiver.ManifestConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Developer;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.*;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.repository.legacy.metadata.ArtifactMetadataSource;
 import org.apache.maven.scm.CommandParameters;
 import org.apache.maven.scm.ScmException;
 import org.apache.maven.scm.ScmFileSet;
@@ -92,40 +90,37 @@ public class CreateManifestMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         final String revision;
-        final List<Dependency> dependencies = project.getDependencies();
-        final Properties properties = session.getSystemProperties();
-        ;
-        if (properties.containsKey(CREATE_MANIFEST_MOJO_BUILD_REVISION)) {
-            revision = properties.getProperty(CREATE_MANIFEST_MOJO_BUILD_REVISION);
-        } else {
-            final ScmRepository repository;
-            final InfoScmResult info;
-            try {
+        final List<String> dependencies;
+        try {
+            dependencies = project.getRuntimeClasspathElements();
+            final Properties properties = session.getSystemProperties();
+            ;
+            if (properties.containsKey(CREATE_MANIFEST_MOJO_BUILD_REVISION)) {
+                revision = properties.getProperty(CREATE_MANIFEST_MOJO_BUILD_REVISION);
+            } else {
+                final ScmRepository repository;
+                final InfoScmResult info;
                 repository = scmManager.makeScmRepository(StringUtils.isBlank(scmDeveloperConnection) ? scmConnection : scmDeveloperConnection);
                 final ScmProvider provider = scmManager.getProviderByRepository(repository);
                 info = provider.info(
                         repository.getProviderRepository(), new ScmFileSet(baseDir), new CommandParameters());
-            } catch (ScmException e) {
-                throw new RuntimeException(e);
+                revision = info.getInfoItems().get(0).getRevision();
+                properties.setProperty(CREATE_MANIFEST_MOJO_BUILD_REVISION, revision);
             }
-            revision = info.getInfoItems().get(0).getRevision();
-            properties.setProperty(CREATE_MANIFEST_MOJO_BUILD_REVISION, revision);
-        }
-        getLog().info("revision=" + revision);
-        for (Developer developer : developers) {
-            getLog().info(developer.toString());
-        }
-        final ManifestConfiguration manifestConfiguration = new ManifestConfiguration();
-        manifestConfiguration.setAddDefaultImplementationEntries(true);
-        manifestConfiguration.setAddDefaultSpecificationEntries(true);
-        final MavenArchiver mavenArchiver = new MavenArchiver();
-        final Manifest manifest;
-        try {
+            getLog().info("revision=" + revision);
+            for (Developer developer : developers) {
+                getLog().info(developer.toString());
+            }
+            final ManifestConfiguration manifestConfiguration = new ManifestConfiguration();
+            manifestConfiguration.setAddDefaultImplementationEntries(true);
+            manifestConfiguration.setAddDefaultSpecificationEntries(true);
+            final MavenArchiver mavenArchiver = new MavenArchiver();
+            final Manifest manifest;
             manifest = mavenArchiver.getManifest(session, project, manifestConfiguration);
             manifest.addConfiguredAttribute(new Manifest.Attribute("Developers", DeveloperDecorator.fromDevelopers(developers)));
             manifest.addConfiguredAttribute(new Manifest.Attribute("Dependencies", DependencyDecorator.fromDependencies(dependencies)));
             manifest.write(System.out);
-        } catch (ManifestException|IOException|DependencyResolutionRequiredException e) {
+        } catch (ManifestException | IOException | DependencyResolutionRequiredException | ScmException e) {
             throw new MojoExecutionException("Oops", e);
         }
     }
