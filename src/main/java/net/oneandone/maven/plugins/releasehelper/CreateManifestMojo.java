@@ -107,10 +107,6 @@ public class CreateManifestMojo extends AbstractMojo {
                 revision = info.getInfoItems().get(0).getRevision();
                 properties.setProperty(CREATE_MANIFEST_MOJO_BUILD_REVISION, revision);
             }
-            getLog().info("revision=" + revision);
-            for (Developer developer : developers) {
-                getLog().info(developer.toString());
-            }
             final ManifestConfiguration manifestConfiguration = new ManifestConfiguration();
             manifestConfiguration.setAddDefaultImplementationEntries(true);
             manifestConfiguration.setAddDefaultSpecificationEntries(true);
@@ -118,7 +114,7 @@ public class CreateManifestMojo extends AbstractMojo {
             final Manifest manifest;
             manifest = mavenArchiver.getManifest(session, project, manifestConfiguration);
             manifest.addConfiguredAttribute(new Manifest.Attribute("Developers", DeveloperDecorator.fromDevelopers(developers)));
-            manifest.addConfiguredAttribute(new Manifest.Attribute("Dependencies", DependencyDecorator.fromDependencies(dependencies)));
+            manifest.addConfiguredAttribute(new Manifest.Attribute("Dependencies", dependencies.toString()));
             manifest.write(System.out);
         } catch (ManifestException | IOException | DependencyResolutionRequiredException | ScmException e) {
             throw new MojoExecutionException("Oops", e);
