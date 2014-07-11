@@ -123,7 +123,7 @@ public class CreateManifestMojo extends AbstractMojo {
         try {
             manifest = mavenArchiver.getManifest(session, project, manifestConfiguration);
             manifest.addConfiguredAttribute(new Manifest.Attribute("Developers", DeveloperDecorator.fromDevelopers(developers)));
-            manifest.addConfiguredAttribute(new Manifest.Attribute("Dependencies", dependencies.toString()));
+            manifest.addConfiguredAttribute(new Manifest.Attribute("Dependencies", DependencyDecorator.fromDependencies(dependencies)));
             manifest.write(System.out);
         } catch (ManifestException|IOException|DependencyResolutionRequiredException e) {
             throw new MojoExecutionException("Oops", e);
