@@ -19,12 +19,14 @@ import org.apache.maven.archiver.ManifestConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Developer;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.*;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.repository.legacy.metadata.ArtifactMetadataSource;
 import org.apache.maven.scm.CommandParameters;
 import org.apache.maven.scm.ScmException;
 import org.apache.maven.scm.ScmFileSet;
@@ -38,12 +40,8 @@ import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Properties;
-
-import static org.apache.maven.shared.utils.StringUtils.join;
 
 /**
  * Created by mirko on 10.07.14.
@@ -94,7 +92,7 @@ public class CreateManifestMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         final String revision;
-
+        final List<Dependency> dependencies = project.getDependencies();
         final Properties properties = session.getSystemProperties();
         ;
         if (properties.containsKey(CREATE_MANIFEST_MOJO_BUILD_REVISION)) {
@@ -125,34 +123,10 @@ public class CreateManifestMojo extends AbstractMojo {
         try {
             manifest = mavenArchiver.getManifest(session, project, manifestConfiguration);
             manifest.addConfiguredAttribute(new Manifest.Attribute("Developers", DeveloperDecorator.fromDevelopers(developers)));
+            manifest.addConfiguredAttribute(new Manifest.Attribute("Dependencies", dependencies.toString()));
             manifest.write(System.out);
-        } catch (ManifestException e) {
+        } catch (ManifestException|IOException|DependencyResolutionRequiredException e) {
             throw new MojoExecutionException("Oops", e);
-        } catch (IOException e) {
-            throw new MojoExecutionException("Could not write", e);
-        } catch (DependencyResolutionRequiredException e) {
-            throw new MojoExecutionException("Oops", e);
-        }
-
-
-    }
-    private static class DeveloperDecorator extends Developer {
-        private final Developer decorated;
-
-        DeveloperDecorator(Developer decorated) {
-            this.decorated = decorated;
-        }
-
-        @Override
-        public String toString() {
-            return String.format(Locale.ENGLISH, "%s <%s>", decorated.getName(), decorated.getEmail());
-        }
-        static String fromDevelopers(List<Developer> developers) {
-            final ArrayList<DeveloperDecorator> developerDecorators = new ArrayList<DeveloperDecorator>();
-            for (Developer developer : developers) {
-                developerDecorators.add(new DeveloperDecorator(developer));
-            }
-            return join(developerDecorators.iterator(), ",");
         }
     }
 }
