@@ -88,7 +88,7 @@ public class CreateManifestMojo extends AbstractMojo {
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     private MavenSession session;
 
-    @Parameter(defaultValue = "${project.directory}", readonly = true, required = true)
+    @Parameter(defaultValue = "${project.build.directory}", readonly = true, required = true)
     private File targetDir;
 
     @Component
