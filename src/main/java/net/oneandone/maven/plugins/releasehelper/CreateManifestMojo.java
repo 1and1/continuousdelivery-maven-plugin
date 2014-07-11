@@ -32,14 +32,18 @@ import org.apache.maven.scm.command.info.InfoScmResult;
 import org.apache.maven.scm.manager.ScmManager;
 import org.apache.maven.scm.provider.ScmProvider;
 import org.apache.maven.scm.repository.ScmRepository;
+import org.apache.maven.shared.utils.StringUtils;
 import org.codehaus.plexus.archiver.jar.Manifest;
 import org.codehaus.plexus.archiver.jar.ManifestException;
-import org.codehaus.plexus.util.StringUtils;
+import sun.misc.IOUtils;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
+
+import static org.apache.maven.shared.utils.io.FileUtils.forceMkdir;
 
 /**
  * Created by mirko on 10.07.14.
@@ -84,6 +88,9 @@ public class CreateManifestMojo extends AbstractMojo {
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     private MavenSession session;
 
+    @Parameter(defaultValue = "${project.directory}", readonly = true, required = true)
+    private File targetDir;
+
     @Component
     private ScmManager scmManager;
 
@@ -92,7 +99,6 @@ public class CreateManifestMojo extends AbstractMojo {
         final String revision;
         final List<String> dependencies;
         try {
-            dependencies = project.getRuntimeClasspathElements();
             final Properties properties = session.getSystemProperties();
             ;
             if (properties.containsKey(CREATE_MANIFEST_MOJO_BUILD_REVISION)) {
@@ -110,12 +116,15 @@ public class CreateManifestMojo extends AbstractMojo {
             final ManifestConfiguration manifestConfiguration = new ManifestConfiguration();
             manifestConfiguration.setAddDefaultImplementationEntries(true);
             manifestConfiguration.setAddDefaultSpecificationEntries(true);
+            manifestConfiguration.setAddClasspath(true);
             final MavenArchiver mavenArchiver = new MavenArchiver();
             final Manifest manifest;
             manifest = mavenArchiver.getManifest(session, project, manifestConfiguration);
             manifest.addConfiguredAttribute(new Manifest.Attribute("Developers", DeveloperDecorator.fromDevelopers(developers)));
-            manifest.addConfiguredAttribute(new Manifest.Attribute("Dependencies", dependencies.toString()));
-            manifest.write(System.out);
+            forceMkdir(targetDir);
+            try (FileOutputStream o = new FileOutputStream(new File(targetDir, "MANIFEST.MF"))) {
+                manifest.write(o);
+            }
         } catch (ManifestException | IOException | DependencyResolutionRequiredException | ScmException e) {
             throw new MojoExecutionException("Oops", e);
         }
