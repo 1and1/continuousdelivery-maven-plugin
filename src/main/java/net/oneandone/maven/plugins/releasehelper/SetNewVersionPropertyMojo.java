@@ -38,7 +38,7 @@ public class SetNewVersionPropertyMojo extends AbstractMojo {
     private static final String SNAPSHOT = "-SNAPSHOT";
     @Parameter(defaultValue = "${project}", readonly = true)
     private MavenProject project;
-    @Component
+    @Parameter(defaultValue = "${session}", readonly = true, required = true)
     private MavenSession session;
     @Parameter(defaultValue = "${basedir}", readonly = true)
     private File baseDir;

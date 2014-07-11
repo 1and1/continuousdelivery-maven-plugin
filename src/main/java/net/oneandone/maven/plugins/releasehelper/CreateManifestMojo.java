@@ -15,46 +15,77 @@
  */
 package net.oneandone.maven.plugins.releasehelper;
 
+import org.apache.maven.archiver.ManifestConfiguration;
+import org.apache.maven.archiver.MavenArchiver;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Developer;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Component;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.*;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.scm.CommandParameters;
 import org.apache.maven.scm.ScmException;
 import org.apache.maven.scm.ScmFileSet;
 import org.apache.maven.scm.command.info.InfoScmResult;
-import org.apache.maven.scm.manager.NoSuchScmProviderException;
 import org.apache.maven.scm.manager.ScmManager;
 import org.apache.maven.scm.provider.ScmProvider;
 import org.apache.maven.scm.repository.ScmRepository;
-import org.apache.maven.scm.repository.ScmRepositoryException;
+import org.codehaus.plexus.archiver.jar.Manifest;
+import org.codehaus.plexus.archiver.jar.ManifestException;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Properties;
+
+import static org.apache.maven.shared.utils.StringUtils.join;
 
 /**
  * Created by mirko on 10.07.14.
  */
-@Mojo(name = "create-manifest", defaultPhase = LifecyclePhase.INITIALIZE, requiresProject = true)
+@Mojo(name = "create-manifest", defaultPhase = LifecyclePhase.PREPARE_PACKAGE, requiresProject = true, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class CreateManifestMojo extends AbstractMojo {
-    @Parameter(defaultValue = "${project.scm.developerConnection}", readonly = true)
-    private String urlScm;
+    private static final String CREATE_MANIFEST_MOJO_BUILD_REVISION = "createManifestMojo.buildRevision";
 
-    @Parameter(defaultValue = "${project.scm.connection}", readonly = true)
-    private String readUrlScm;
+    @Parameter(defaultValue = "${project.url}", readonly = true, required = true)
+    private String projectUrl;
 
-    @Parameter(defaultValue = "${basedir}", readonly = true)
+    @Parameter(defaultValue = "${project.groupId}", readonly = true, required = true)
+    private String projectGroupId;
+
+    @Parameter(defaultValue = "${project.artifactId}", readonly = true, required = true)
+    private String projectArtifactId;
+
+    @Parameter(defaultValue = "${project.version}", readonly = true, required = true)
+    private String projectVersion;
+
+    @Parameter(defaultValue = "${project.scm.developerConnection}", readonly = true, required = true)
+    private String scmDeveloperConnection;
+
+    @Parameter(defaultValue = "${project.scm.connection}", readonly = true, required = true)
+    private String scmConnection;
+
+    @Parameter(defaultValue = "${project.scm.url}", readonly = true, required = true)
+    private String scmUrl;
+
+    @Parameter(defaultValue = "${project.developers}", readonly = true, required = true)
+    private List<Developer> developers;
+
+    @Parameter(defaultValue = "${project.issueManagement.url}", readonly = true, required = true)
+    private String issueManagement;
+
+    @Parameter(defaultValue = "${basedir}", readonly = true, required = true)
     private File baseDir;
 
-    @Parameter(defaultValue = "${project}", readonly = true)
+    @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject project;
 
-    @Component
+    @Parameter(defaultValue = "${session}", readonly = true, required = true)
     private MavenSession session;
 
     @Component
@@ -62,16 +93,66 @@ public class CreateManifestMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        final ScmRepository repository;
-        final InfoScmResult info;
-        try {
-            repository = scmManager.makeScmRepository(StringUtils.isBlank(urlScm) ? readUrlScm : urlScm);
-            final ScmProvider provider = scmManager.getProviderByRepository(repository);
-            info = provider.info(
-                    repository.getProviderRepository(), new ScmFileSet(baseDir), new CommandParameters());
-        } catch (ScmException e) {
-            throw new RuntimeException(e);
+        final String revision;
+
+        final Properties properties = session.getSystemProperties();
+        ;
+        if (properties.containsKey(CREATE_MANIFEST_MOJO_BUILD_REVISION)) {
+            revision = properties.getProperty(CREATE_MANIFEST_MOJO_BUILD_REVISION);
+        } else {
+            final ScmRepository repository;
+            final InfoScmResult info;
+            try {
+                repository = scmManager.makeScmRepository(StringUtils.isBlank(scmDeveloperConnection) ? scmConnection : scmDeveloperConnection);
+                final ScmProvider provider = scmManager.getProviderByRepository(repository);
+                info = provider.info(
+                        repository.getProviderRepository(), new ScmFileSet(baseDir), new CommandParameters());
+            } catch (ScmException e) {
+                throw new RuntimeException(e);
+            }
+            revision = info.getInfoItems().get(0).getRevision();
+            properties.setProperty(CREATE_MANIFEST_MOJO_BUILD_REVISION, revision);
         }
-        getLog().info(info.getInfoItems().get(0).getRevision());
+        getLog().info("revision=" + revision);
+        for (Developer developer : developers) {
+            getLog().info(developer.toString());
+        }
+        final ManifestConfiguration manifestConfiguration = new ManifestConfiguration();
+        manifestConfiguration.setAddDefaultImplementationEntries(true);
+        manifestConfiguration.setAddDefaultSpecificationEntries(true);
+        final MavenArchiver mavenArchiver = new MavenArchiver();
+        final Manifest manifest;
+        try {
+            manifest = mavenArchiver.getManifest(session, project, manifestConfiguration);
+            manifest.addConfiguredAttribute(new Manifest.Attribute("Developers", DeveloperDecorator.fromDevelopers(developers)));
+            manifest.write(System.out);
+        } catch (ManifestException e) {
+            throw new MojoExecutionException("Oops", e);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Could not write", e);
+        } catch (DependencyResolutionRequiredException e) {
+            throw new MojoExecutionException("Oops", e);
+        }
+
+
+    }
+    private static class DeveloperDecorator extends Developer {
+        private final Developer decorated;
+
+        DeveloperDecorator(Developer decorated) {
+            this.decorated = decorated;
+        }
+
+        @Override
+        public String toString() {
+            return String.format(Locale.ENGLISH, "%s <%s>", decorated.getName(), decorated.getEmail());
+        }
+        static String fromDevelopers(List<Developer> developers) {
+            final ArrayList<DeveloperDecorator> developerDecorators = new ArrayList<DeveloperDecorator>();
+            for (Developer developer : developers) {
+                developerDecorators.add(new DeveloperDecorator(developer));
+            }
+            return join(developerDecorators.iterator(), ",");
+        }
     }
 }
