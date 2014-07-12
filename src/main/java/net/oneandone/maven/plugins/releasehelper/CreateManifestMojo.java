@@ -25,23 +25,15 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.*;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.scm.CommandParameters;
 import org.apache.maven.scm.ScmException;
-import org.apache.maven.scm.ScmFileSet;
-import org.apache.maven.scm.command.info.InfoScmResult;
 import org.apache.maven.scm.manager.ScmManager;
-import org.apache.maven.scm.provider.ScmProvider;
-import org.apache.maven.scm.repository.ScmRepository;
-import org.apache.maven.shared.utils.StringUtils;
 import org.codehaus.plexus.archiver.jar.Manifest;
 import org.codehaus.plexus.archiver.jar.ManifestException;
-import sun.misc.IOUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.Properties;
 
 import static org.apache.maven.shared.utils.io.FileUtils.forceMkdir;
 
@@ -50,7 +42,6 @@ import static org.apache.maven.shared.utils.io.FileUtils.forceMkdir;
  */
 @Mojo(name = "create-manifest", defaultPhase = LifecyclePhase.PREPARE_PACKAGE, requiresProject = true, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class CreateManifestMojo extends AbstractMojo {
-    private static final String CREATE_MANIFEST_MOJO_BUILD_REVISION = "createManifestMojo.buildRevision";
 
     @Parameter(defaultValue = "${project.url}", readonly = true, required = true)
     private String projectUrl;
@@ -96,23 +87,8 @@ public class CreateManifestMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        final String revision;
-        final List<String> dependencies;
         try {
-            final Properties properties = session.getSystemProperties();
-            ;
-            if (properties.containsKey(CREATE_MANIFEST_MOJO_BUILD_REVISION)) {
-                revision = properties.getProperty(CREATE_MANIFEST_MOJO_BUILD_REVISION);
-            } else {
-                final ScmRepository repository;
-                final InfoScmResult info;
-                repository = scmManager.makeScmRepository(StringUtils.isBlank(scmDeveloperConnection) ? scmConnection : scmDeveloperConnection);
-                final ScmProvider provider = scmManager.getProviderByRepository(repository);
-                info = provider.info(
-                        repository.getProviderRepository(), new ScmFileSet(baseDir), new CommandParameters());
-                revision = info.getInfoItems().get(0).getRevision();
-                properties.setProperty(CREATE_MANIFEST_MOJO_BUILD_REVISION, revision);
-            }
+            final String revision = new SCMRevision(scmDeveloperConnection, scmConnection, scmManager, baseDir, session.getSystemProperties()).getSCMRevision();
             final ManifestConfiguration manifestConfiguration = new ManifestConfiguration();
             manifestConfiguration.setAddDefaultImplementationEntries(true);
             manifestConfiguration.setAddDefaultSpecificationEntries(true);
@@ -121,6 +97,7 @@ public class CreateManifestMojo extends AbstractMojo {
             final Manifest manifest;
             manifest = mavenArchiver.getManifest(session, project, manifestConfiguration);
             manifest.addConfiguredAttribute(new Manifest.Attribute("Developers", DeveloperDecorator.fromDevelopers(developers)));
+            manifest.addConfiguredAttribute(new Manifest.Attribute("Build-SCM-Revision", revision));
             forceMkdir(targetDir);
             try (FileOutputStream o = new FileOutputStream(new File(targetDir, "MANIFEST.MF"))) {
                 manifest.write(o);

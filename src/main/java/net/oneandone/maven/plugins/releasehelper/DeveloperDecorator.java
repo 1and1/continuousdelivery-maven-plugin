@@ -44,6 +44,6 @@ class DeveloperDecorator extends Developer {
         for (Developer developer : developers) {
             developerDecorators.add(new DeveloperDecorator(developer));
         }
-        return join(developerDecorators.iterator(), ",");
+        return join(developerDecorators.iterator(), ", ");
     }
 }
