@@ -15,17 +15,16 @@
  */
 package net.oneandone.maven.plugins.releasehelper;
 
-import java.io.File;
-import java.util.Locale;
-import java.util.Properties;
-
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+
+import java.io.File;
+import java.util.Locale;
+import java.util.Properties;
 
 /**
  * Goal which calculates properties {@literal newVersion} and {@literal releaseVersion} from a SNAPSHOT enhanced by Jenkins' build

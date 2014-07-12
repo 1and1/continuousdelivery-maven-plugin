@@ -1,3 +1,18 @@
+/*
+ * Copyright 1&1 Internet AG, https://github.com/1and1/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package net.oneandone.maven.plugins.releasehelper;
 
 import org.apache.maven.scm.CommandParameters;
@@ -19,7 +34,7 @@ import java.util.Properties;
 */
 class SCMRevision {
 
-    private static final String CREATE_MANIFEST_MOJO_BUILD_REVISION = "createManifestMojo.scmRevision";
+    static final String CREATE_MANIFEST_MOJO_BUILD_REVISION = "createManifestMojo.scmRevision";
     private final String scmDeveloperConnection;
     private final String scmConnection;
     private final ScmManager scmManager;
@@ -33,6 +48,7 @@ class SCMRevision {
         this.baseDir = baseDir;
         this.properties = properties;
     }
+
     String getSCMRevision() throws ScmException {
         final String revision;
         ;
@@ -46,13 +62,17 @@ class SCMRevision {
             info = provider.info(
                     repository.getProviderRepository(), new ScmFileSet(baseDir), new CommandParameters());
             final List<InfoItem> infoItems = info.getInfoItems();
-            if (!infoItems.isEmpty()) {
-                revision = infoItems.get(0).getRevision();
-            } else {
-                revision = "UNKNOWN";
-            }
+            revision = getRevision(infoItems);
             properties.setProperty(CREATE_MANIFEST_MOJO_BUILD_REVISION, revision);
         }
         return revision;
+    }
+
+    String getRevision(List<InfoItem> infoItems) {
+        if (!infoItems.isEmpty()) {
+            return infoItems.get(0).getRevision();
+        } else {
+            return "UNKNOWN";
+        }
     }
 }
