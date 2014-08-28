@@ -15,6 +15,10 @@
   -->
 
 <FindBugsFilter>
+    <Match>
+        <Class name="~net.oneandone.maven.plugins.releasehelper.DeveloperDecorator" />
+        <Bug pattern="SE_NO_SERIALVERSIONID" />
+    </Match>
     <Match><!-- generated -->
         <Class name="~net.oneandone.maven.plugins..*.HelpMojo" />
     </Match>

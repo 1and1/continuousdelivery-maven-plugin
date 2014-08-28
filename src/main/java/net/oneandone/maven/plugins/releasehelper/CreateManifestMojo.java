@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 import static org.apache.maven.shared.utils.io.FileUtils.forceMkdir;
 
@@ -89,21 +90,44 @@ public class CreateManifestMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
             final String revision = new SCMRevision(scmDeveloperConnection, scmConnection, scmManager, baseDir, session.getSystemProperties()).getSCMRevision();
-            final ManifestConfiguration manifestConfiguration = new ManifestConfiguration();
-            manifestConfiguration.setAddDefaultImplementationEntries(true);
-            manifestConfiguration.setAddDefaultSpecificationEntries(true);
-            manifestConfiguration.setAddClasspath(true);
-            final MavenArchiver mavenArchiver = new MavenArchiver();
-            final Manifest manifest;
-            manifest = mavenArchiver.getManifest(session, project, manifestConfiguration);
-            manifest.addConfiguredAttribute(new Manifest.Attribute("Developers", DeveloperDecorator.fromDevelopers(developers)));
-            manifest.addConfiguredAttribute(new Manifest.Attribute("Build-SCM-Revision", revision));
+            final ManifestCreator manifestCreator = new ManifestCreator(session, project);
+            final String gav = String.format(Locale.ENGLISH, "%s:%s:%s",
+                    projectGroupId, projectArtifactId, projectVersion);
+            manifestCreator.addManifestEntry("GAV", gav);
+            manifestCreator.addManifestEntry("Developers", DeveloperDecorator.fromDevelopers(developers));
+            manifestCreator.addManifestEntry("Build-SCM-Revision", revision);
+            manifestCreator.addManifestEntry("URL", projectUrl);
+            manifestCreator.addManifestEntry("SCM-URL", scmUrl);
+            manifestCreator.addManifestEntry("SCM-Connection", scmConnection);
+            manifestCreator.addManifestEntry("SCM-Developer-Connection", scmDeveloperConnection);
+            manifestCreator.addManifestEntry("Issue-Management-URL", issueManagement);
+            final Manifest manifest = manifestCreator.getManifest();
             forceMkdir(targetDir);
             try (FileOutputStream o = new FileOutputStream(new File(targetDir, "MANIFEST.MF"))) {
                 manifest.write(o);
             }
         } catch (ManifestException | IOException | DependencyResolutionRequiredException | ScmException e) {
             throw new MojoExecutionException("Oops", e);
+        }
+    }
+
+
+    static class ManifestCreator {
+        final Manifest manifest;
+
+        ManifestCreator(MavenSession session, MavenProject project) throws ManifestException, DependencyResolutionRequiredException {
+            final ManifestConfiguration manifestConfiguration = new ManifestConfiguration();
+            manifestConfiguration.setAddDefaultImplementationEntries(true);
+            manifestConfiguration.setAddDefaultSpecificationEntries(true);
+            manifestConfiguration.setAddClasspath(true);
+            final MavenArchiver mavenArchiver = new MavenArchiver();
+            manifest = mavenArchiver.getManifest(session, project, manifestConfiguration);
+        }
+        void addManifestEntry(String name, String value) throws ManifestException {
+            manifest.addConfiguredAttribute(new Manifest.Attribute(name, value));
+        }
+        Manifest getManifest() {
+            return manifest;
         }
     }
 }

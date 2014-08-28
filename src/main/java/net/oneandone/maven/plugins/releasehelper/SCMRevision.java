@@ -30,9 +30,11 @@ import java.util.List;
 import java.util.Properties;
 
 /**
-* Created by mirko on 12.07.14.
+* Retrieves the SCM
 */
 class SCMRevision {
+
+    public String ROLE = SCMRevision.class.getName();
 
     static final String CREATE_MANIFEST_MOJO_BUILD_REVISION = "createManifestMojo.scmRevision";
     private final String scmDeveloperConnection;
@@ -51,7 +53,6 @@ class SCMRevision {
 
     String getSCMRevision() throws ScmException {
         final String revision;
-        ;
         if (properties.containsKey(CREATE_MANIFEST_MOJO_BUILD_REVISION)) {
             revision = properties.getProperty(CREATE_MANIFEST_MOJO_BUILD_REVISION);
         } else {
