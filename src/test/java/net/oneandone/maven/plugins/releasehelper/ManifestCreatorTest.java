@@ -41,13 +41,8 @@ public class ManifestCreatorTest {
         final Properties properties = new Properties();
         properties.setProperty("maven.version", "3.2.3");
         Mockito.when(mockedSession.getExecutionProperties()).thenReturn(properties);
-        final CreateManifestMojo.ManifestCreator sut = new CreateManifestMojo.ManifestCreator(mockedSession, mockedProject);
+        final ManifestCreator sut = new ManifestCreator(mockedSession, mockedProject);
         sut.addManifestEntry("Foo", "bar");
         assertTrue(sut.getManifest().toString().contains("Foo: bar"));
-    }
-
-    @Test
-    public void testGetManifest() throws Exception {
-
     }
 }

@@ -228,6 +228,7 @@
                     <configuration>
                         <excludes>
                             <exclude>**/net/oneandone/maven/plugins/*/HelpMojo.*</exclude>
+                            <exclude>**/net/oneandone/maven/plugins/*/CreateManifestMojo.*</exclude>
                         </excludes>
                     </configuration>
                 </plugin>

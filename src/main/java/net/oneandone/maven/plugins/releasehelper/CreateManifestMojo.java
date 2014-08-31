@@ -15,8 +15,6 @@
  */
 package net.oneandone.maven.plugins.releasehelper;
 
-import org.apache.maven.archiver.ManifestConfiguration;
-import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Developer;
@@ -112,22 +110,4 @@ public class CreateManifestMojo extends AbstractMojo {
     }
 
 
-    static class ManifestCreator {
-        final Manifest manifest;
-
-        ManifestCreator(MavenSession session, MavenProject project) throws ManifestException, DependencyResolutionRequiredException {
-            final ManifestConfiguration manifestConfiguration = new ManifestConfiguration();
-            manifestConfiguration.setAddDefaultImplementationEntries(true);
-            manifestConfiguration.setAddDefaultSpecificationEntries(true);
-            manifestConfiguration.setAddClasspath(true);
-            final MavenArchiver mavenArchiver = new MavenArchiver();
-            manifest = mavenArchiver.getManifest(session, project, manifestConfiguration);
-        }
-        void addManifestEntry(String name, String value) throws ManifestException {
-            manifest.addConfiguredAttribute(new Manifest.Attribute(name, value));
-        }
-        Manifest getManifest() {
-            return manifest;
-        }
-    }
 }
