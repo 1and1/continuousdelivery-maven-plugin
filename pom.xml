@@ -22,7 +22,7 @@
     <parent>
         <groupId>net.oneandone.maven.poms</groupId>
         <artifactId>foss-parent</artifactId>
-        <version>1.4.9</version>
+        <version>1.5.3</version>
     </parent>
 
     <groupId>net.oneandone.maven.plugins</groupId>
@@ -66,14 +66,12 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <jacoco-maven-plugin.version>0.7.1.201405082137</jacoco-maven-plugin.version>
         <findbugs-maven-plugin.excludeFilterFile>src/conf/findbugs-exclude.xml</findbugs-maven-plugin.excludeFilterFile>
         <scmpublish.content>target/staging/releasehelper-maven-plugin</scmpublish.content>
         <jacoco.check.branchRatio>0.87</jacoco.check.branchRatio>
-        <maven-plugin-plugin.version>3.3</maven-plugin-plugin.version>
         <netbeans.compile.on.save>all</netbeans.compile.on.save>
         <netbeans.hint.jdkPlatform>JDK_1.7</netbeans.hint.jdkPlatform>
-        <maven.scm.version>1.9</maven.scm.version>
+        <maven.scm.version>1.9.4</maven.scm.version>
     </properties>
 
     <dependencies>
